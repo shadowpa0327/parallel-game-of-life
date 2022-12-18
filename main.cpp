@@ -69,6 +69,7 @@ int main(){
     }
 
     char mode;
+
     cout << "Select Initialization mode, read from file or random sample (r/s): ";
     cin >> mode;
 
@@ -80,27 +81,30 @@ int main(){
     cin >> start;
     if( start == "y" || start == "Y" ) 
     {
-      int iter = 0;
-      double serialTime = 0.0;
-      while (iter++ < maxIteration) 
-      {
-        double startTime = CycleTimer::currentSeconds();
-        gameOfLifeSerial(gridOne, gridTwo);
-        double endTime = CycleTimer::currentSeconds();
-        serialTime += (endTime - startTime) * 1000;
-        
-        if (SHOW) 
-        {        
-          printf("Iteration %d\n", iter);  
-          printGrid(gridOne); 
-          usleep(200000);
-          clearScreen();
+      #if defined(BUILD_SERIAL)
+        cout <<"Running gameOfLife in serial mode \n";
+        int iter = 0;
+        double serialTime = 0.0;
+        while (iter++ < maxIteration) 
+        {
+          double startTime = CycleTimer::currentSeconds();
+          gameOfLifeSerial(gridOne, gridTwo);
+          double endTime = CycleTimer::currentSeconds();
+          serialTime += (endTime - startTime) * 1000;
+          
+          if (SHOW) 
+          {        
+            printf("Iteration %d\n", iter);  
+            printGrid(gridOne); 
+            usleep(200000);
+            clearScreen();
+          }
         }
-	    }
-      printf("[Game Of Life Serial]:\t\t[%.3f] ms\n", serialTime);
+        printf("[Game Of Life Serial]:\t\t[%.3f] ms\n", serialTime);
 
-      if (SHOW) return 0;
-
+        if (SHOW) return 0;
+      #endif
+      #if defined(BUILD_PTHREAD)
       initGrid(mode, gridOne);
       iter = 0;
       double pthreadTime = 0.0;
@@ -113,7 +117,8 @@ int main(){
       }
       printf("[Game Of Life Pthread]:\t\t[%.3f] ms", pthreadTime);
       printf("\t\t%.3f times faster than serial version\n", serialTime/pthreadTime);
-
+      #endif
+      #if defined(BUILD_OPENMP)
       initGrid(mode, gridOne);
       iter = 0;
       double OpenMPTime = 0.0;
@@ -126,7 +131,8 @@ int main(){
       }
       printf("[Game Of Life OpenMP]:\t\t[%.3f] ms", OpenMPTime);
       printf("\t\t%.3f times faster than serial version\n", serialTime/OpenMPTime);
-
+      #endif
+      #if defined(BUILD_CUDA)
       initGrid(mode, gridOne);
       iter = 0;
       double CUDATime = 0.0;
@@ -139,6 +145,7 @@ int main(){
       }
       printf("[Game Of Life CUDA]:\t\t[%.3f] ms", CUDATime); 
       printf("\t\t%.3f times faster than serial version\n", serialTime/CUDATime);
+      #endif
     } 
     else 
     {
@@ -160,7 +167,8 @@ void initGrid(char mode, bool** gridOne) {
     int x, y;
     if (mode == 'r') 
     {
-      string filename = "testboard.txt";  
+      // Todo: Try to do it in an more elastic way rather than hard coding it.
+      string filename = "../testboard.txt";  
       ifstream readfile(filename);
       if ( readfile.is_open() ) 
       {
