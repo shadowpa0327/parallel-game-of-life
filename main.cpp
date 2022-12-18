@@ -88,7 +88,7 @@ int main(){
         gameOfLifeSerial(gridOne, gridTwo);
         double endTime = CycleTimer::currentSeconds();
         serialTime += (endTime - startTime) * 1000;
-
+        
         if (SHOW) 
         {        
           printf("Iteration %d\n", iter);  
@@ -111,7 +111,8 @@ int main(){
         double endTime = CycleTimer::currentSeconds();
         pthreadTime += (endTime - startTime) * 1000;
       }
-      printf("[Game Of Life Pthread]:\t\t[%.3f] ms\n", pthreadTime);
+      printf("[Game Of Life Pthread]:\t\t[%.3f] ms", pthreadTime);
+      printf("\t\t%.3f times faster than serial version\n", serialTime/pthreadTime);
 
       initGrid(mode, gridOne);
       iter = 0;
@@ -123,7 +124,8 @@ int main(){
         double endTime = CycleTimer::currentSeconds();
         OpenMPTime += (endTime - startTime) * 1000;
       }
-      printf("[Game Of Life OpenMP]:\t\t[%.3f] ms\n", OpenMPTime);
+      printf("[Game Of Life OpenMP]:\t\t[%.3f] ms", OpenMPTime);
+      printf("\t\t%.3f times faster than serial version\n", serialTime/OpenMPTime);
 
       initGrid(mode, gridOne);
       iter = 0;
@@ -135,7 +137,8 @@ int main(){
         double endTime = CycleTimer::currentSeconds();
         CUDATime += (endTime - startTime) * 1000;
       }
-      printf("[Game Of Life CUDA]:\t\t[%.3f] ms\n", CUDATime); 
+      printf("[Game Of Life CUDA]:\t\t[%.3f] ms", CUDATime); 
+      printf("\t\t%.3f times faster than serial version\n", serialTime/CUDATime);
     } 
     else 
     {
