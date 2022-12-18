@@ -1,14 +1,10 @@
 #include "parameter.h"
 
-void gameOfLifeCUDA(bool gridOne[gridHeight+1][gridWidth+1]){
-    bool gridTwo[gridHeight+1][gridWidth+1] = {};
-    for(int a = 0; a < gridHeight; a++)
-    {
-        for(int b = 0; b < gridWidth; b++)
-        {
-          gridTwo[a][b] = gridOne[a][b];
-        }
-    }
+void gameOfLifeCUDA(bool** &gridOne, bool** &gridTwo){
+    // swap pointer
+    bool** temp = gridOne;
+    gridOne = gridTwo;
+    gridTwo = temp;
 
     for(int a = 1; a < gridHeight; a++)
     {

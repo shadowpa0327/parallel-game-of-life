@@ -49,8 +49,8 @@
 
 using namespace std;
 
-void initGrid(char mode, bool gridOne[gridHeight+1][gridWidth+1]);
-void printGrid(bool gridOne[gridHeight+1][gridWidth+1]);
+void initGrid(char mode, bool** gridOne);
+void printGrid(bool** gridOne);
 void clearScreen(void);
 
 int main(){
@@ -60,7 +60,13 @@ int main(){
     // system( "color A" );//LGT green
     cout << COLOR_GREEN;
     clearScreen();
-    bool gridOne[gridHeight+1][gridWidth+1] = {};
+    bool** gridOne = (bool**) malloc((gridHeight+1)*sizeof(bool*));
+    bool** gridTwo = (bool**) malloc((gridHeight+1)*sizeof(bool*));
+    for (int i=0; i<gridHeight+1; i++) 
+    {
+      gridOne[i] = (bool*) malloc((gridWidth+1)*sizeof(bool));
+      gridTwo[i] = (bool*) malloc((gridWidth+1)*sizeof(bool));
+    }
 
     char mode;
     cout << "Select Initialization mode, read from file or random sample (r/s): ";
@@ -79,7 +85,7 @@ int main(){
       while (iter++ < maxIteration) 
       {
         double startTime = CycleTimer::currentSeconds();
-        gameOfLifeSerial(gridOne);
+        gameOfLifeSerial(gridOne, gridTwo);
         double endTime = CycleTimer::currentSeconds();
         serialTime += (endTime - startTime) * 1000;
 
@@ -101,7 +107,7 @@ int main(){
       while (iter++ < maxIteration) 
       {
         double startTime = CycleTimer::currentSeconds();
-        gameOfLifePthread(gridOne);
+        gameOfLifePthread(gridOne, gridTwo);
         double endTime = CycleTimer::currentSeconds();
         pthreadTime += (endTime - startTime) * 1000;
       }
@@ -113,7 +119,7 @@ int main(){
       while (iter++ < maxIteration) 
       {
         double startTime = CycleTimer::currentSeconds();
-        gameOfLifeOpenMP(gridOne);
+        gameOfLifeOpenMP(gridOne, gridTwo);
         double endTime = CycleTimer::currentSeconds();
         OpenMPTime += (endTime - startTime) * 1000;
       }
@@ -125,7 +131,7 @@ int main(){
       while (iter++ < maxIteration) 
       {
         double startTime = CycleTimer::currentSeconds();
-        gameOfLifeCUDA(gridOne);
+        gameOfLifeCUDA(gridOne, gridTwo);
         double endTime = CycleTimer::currentSeconds();
         CUDATime += (endTime - startTime) * 1000;
       }
@@ -139,7 +145,7 @@ int main(){
     }   
 }
 
-void initGrid(char mode, bool gridOne[gridHeight+1][gridWidth+1]) {
+void initGrid(char mode, bool** gridOne) {
     for(int a = 0; a < gridHeight; a++)
     {
         for(int b = 0; b < gridWidth; b++)
@@ -214,7 +220,7 @@ void clearScreen(void) {
 
 }
 
-void printGrid(bool gridOne[gridHeight+1][gridWidth+1]){
+void printGrid(bool** gridOne){
     for(int a = 1; a < gridHeight; a++)
     {
         for(int b = 1; b < gridWidth; b++)
