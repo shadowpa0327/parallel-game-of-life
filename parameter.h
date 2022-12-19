@@ -2,7 +2,7 @@
 #define gridWidth 150
 #define maxIteration 50
 #define PROB 0.3
-#define SHOW true
+#define SHOW false
 
 //Move OS defines up here to be used in different places
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__BORLANDC__)
