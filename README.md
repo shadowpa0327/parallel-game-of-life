@@ -25,7 +25,7 @@ The initial pattern constitutes the seed of the system. The first generation is 
     + -DBUILD_SERIAL=True : To enable serial code
     + -DBUILD_OPENMP=True : To enable OpenMP
     + -DBUILD_PTHREAD=True : To enable Pthread
-    + -DBUILD_CUDA=True : To enable CUDA
+    + -DBUILD_CUDA=True : To enable CUDA (Currently not enable yet. Since we need a docker enviroment with CUDA. Temporarily, we can ignore this flag.)
 
 ```
 mkdir build
@@ -34,8 +34,7 @@ cd build
 cmake .. \
 -DBUILD_SERIAL=True \
 -DBUILD_OPENMP=True \
--DBUILD_PTHREAD=True \
--DBUILD_CUDA=True 
+-DBUILD_PTHREAD=True 
 
 make
 ```
