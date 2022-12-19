@@ -40,7 +40,6 @@ int main(){
     cin >> start;
     if( start == "y" || start == "Y" ) 
     {
-
       double serialTime = gameOfLifeSerial(gridOne, gridTwo, mode);
       printf("[Game Of Life Serial]:\t\t[%.3f] ms\n", serialTime);
       
@@ -70,6 +69,7 @@ int main(){
         } else {
           printf("[Game Of Life OpenMP]:\t\tWrong Answer\n");
         }
+
       #endif
       #if defined(BUILD_CUDA)
         double CUDATime = gameOfLifeCUDA(gridOne, gridTwo, mode);
@@ -87,7 +87,9 @@ int main(){
       cout << COLOR_RESET;
       clearScreen();
       return 0;
-    } 
+    }
+    printf("pointer address in gridOne:%p\n", gridOne);
+    printf("pointer address in gridTwo:%p\n", gridTwo);
     free(gridOne);
     free(gridTwo);
 }
