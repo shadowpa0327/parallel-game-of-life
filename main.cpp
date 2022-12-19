@@ -44,7 +44,7 @@ int main(){
       #if defined(BUILD_SERIAL)
         double serialTime = gameOfLifeSerial(gridOne, gridTwo, mode);
         printf("[Game Of Life Serial]:\t\t[%.3f] ms\n", serialTime);
-        if (SHOW) return 0;
+        //if (SHOW) return 0;
       #endif
       #if defined(BUILD_PTHREAD)
         double pthreadTime = gameOfLifePthread(gridOne, gridTwo, mode);
@@ -55,6 +55,7 @@ int main(){
         double OpenMPTime = gameOfLifeOpenMP(gridOne, gridTwo, mode);
         printf("[Game Of Life OpenMP]:\t\t[%.3f] ms", OpenMPTime);
         printf("\t\t%.3f times faster than serial version\n", serialTime/OpenMPTime);
+        if (SHOW) return 0;
       #endif
       #if defined(BUILD_CUDA)
         double CUDATime = gameOfLifeCUDA(gridOne, gridTwo, mode);
@@ -67,7 +68,9 @@ int main(){
       cout << COLOR_RESET;
       clearScreen();
       return 0;
-    } 
+    }
+    printf("pointer address in gridOne:%p\n", gridOne);
+    printf("pointer address in gridTwo:%p\n", gridTwo);
     free(gridOne);
     free(gridTwo);
 }
