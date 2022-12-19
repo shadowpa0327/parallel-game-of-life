@@ -7,10 +7,7 @@
 #include <stdlib.h>
 #include "parameter.h"
 #include "utils.h"
-#include "gameOfLifeSerial.cpp"
-#include "gameOfLifePthread.cpp"
-#include "gameOfLifeOpenMP.cpp"
-#include "gameOfLifeCUDA.cpp"
+#include "gameOfLife.h"
 
 
 

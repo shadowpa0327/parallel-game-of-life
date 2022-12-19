@@ -2,10 +2,17 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(Parallel-Game-Of-Life LANGUAGES CXX)
 
 
+add_library(utils
+    utils.cpp
+)  
 
 
 add_executable(main
     main.cpp
+)
+
+target_link_libraries(main
+    utils
 )
 
 if(BUILD_SERIAL)
@@ -41,14 +48,17 @@ endif()
 if(BUILD_CUDA)
 
     find_package(CUDA REQUIRED)
-
+    enable_language(CUDA)
     add_library(gameOfLifeCUDA
-        gameOfLifeCUDA.cpp
+        gameOfLifeCUDA.cu
     )
+    #message(STATUS "${CUDA_INCLUDE_DIRS}")
+    include_directories(${CUDA_INCLUDE_DIRS})
     set_target_properties(gameOfLifeCUDA
                        PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     target_link_libraries(main
         gameOfLifeCUDA
+        ${CUDA_LIBRARIES}
     )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_CUDA")
 endif()
