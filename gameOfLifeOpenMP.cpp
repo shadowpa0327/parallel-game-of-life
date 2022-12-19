@@ -3,15 +3,14 @@
 #include <time.h> 
 #include "CycleTimer.h"
 #include <omp.h>
-
-
+#include <unistd.h>
 void updateOpenMP(bool* &gridOne, bool* &gridTwo){
     // Todo: Implementation OpenMP Version Here
+    std::swap(gridOne, gridTwo);
     #pragma omp parallel num_threads(4)
     {
         //int num = omp_get_max_threads();
         //printf("thread num: %d\n",num);
-        std::swap(gridOne, gridTwo);
         #pragma omp for 
         for(int a = 1; a < gridHeight; a++)
         {
@@ -39,6 +38,13 @@ double gameOfLifeOpenMP(bool* &gridOne, bool* &gridTwo, char mode){
         updateOpenMP(gridOne, gridTwo);
         double endTime = CycleTimer::currentSeconds();
         elapseTime += (endTime - startTime) * 1000;
+        if (SHOW) 
+        {        
+            printf("Iteration (OpenMP)%d\n", iter);  
+            printGrid(gridOne); 
+            usleep(200000);
+            clearScreen();
+        }
         // if(iter % 10000 == 0)
         // {
         //     printf("Iteration: %d",iter);
