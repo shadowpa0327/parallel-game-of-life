@@ -84,6 +84,7 @@ void initGrid(char mode, bool* gridOne) {
     } 
     else if (mode == 's')
     {
+      srand( 811514 );
       for(int a =0; a < gridHeight; a++)
       {
           for(int b = 0; b < gridWidth; b++)
@@ -93,4 +94,11 @@ void initGrid(char mode, bool* gridOne) {
           }
       }
     }
+}
+
+bool correct(bool* gridOne, bool* gridAns) {
+  for (int i=0; i<(gridHeight+1)*(gridWidth+1); i++) {
+    if (gridOne[i] != gridAns[i]) return false;  
+  }
+  return true;
 }
