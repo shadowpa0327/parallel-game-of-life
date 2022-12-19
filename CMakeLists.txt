@@ -1,5 +1,6 @@
-project(Parallel-Game-Of-Life)
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+project(Parallel-Game-Of-Life LANGUAGES CXX)
+
 
 
 
@@ -38,9 +39,14 @@ if(BUILD_OPENMP)
 endif()
 
 if(BUILD_CUDA)
+
+    find_package(CUDA REQUIRED)
+
     add_library(gameOfLifeCUDA
         gameOfLifeCUDA.cpp
     )
+    set_target_properties(gameOfLifeCUDA
+                       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     target_link_libraries(main
         gameOfLifeCUDA
     )
