@@ -11,7 +11,7 @@
 #include "gameOfLifePthread.cpp"
 #include "gameOfLifeOpenMP.cpp"
 #include "gameOfLifeCUDA.cpp"
-
+#include <omp.h>
 
 
 #if defined(OS_WIN)
@@ -70,7 +70,9 @@ int main(){
       cout << COLOR_RESET;
       clearScreen();
       return 0;
-    } 
+    }
+    printf("pointer address in gridOne:%p\n", gridOne);
+    printf("pointer address in gridTwo:%p\n", gridTwo);
     free(gridOne);
     free(gridTwo);
 }

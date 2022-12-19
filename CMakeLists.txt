@@ -35,7 +35,7 @@ if(BUILD_OPENMP)
     target_link_libraries(main
         gameOfLifeOpenMP
     )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_OPENMP")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_OPENMP -fopenmp")
 endif()
 
 if(BUILD_CUDA)

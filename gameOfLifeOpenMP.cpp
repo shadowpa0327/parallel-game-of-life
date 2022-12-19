@@ -7,13 +7,15 @@
 
 void updateOpenMP(bool* &gridOne, bool* &gridTwo){
     // Todo: Implementation OpenMP Version Here
-    #pragma omp parallel
+    #pragma omp parallel num_threads(4)
     {
+        //int num = omp_get_max_threads();
+        //printf("thread num: %d\n",num);
         std::swap(gridOne, gridTwo);
-        #pragma omp for private(a)
+        #pragma omp for 
         for(int a = 1; a < gridHeight; a++)
         {
-            #pragma omp for private(b)
+            //#pragma omp for private(b)
             for(int b = 1; b < gridWidth; b++)
             {
                 int alive =   gridTwo[(a-1)*gridWidth + b-1]   + gridTwo[a*gridWidth + b-1] + gridTwo[(a+1)*gridWidth + b-1]
