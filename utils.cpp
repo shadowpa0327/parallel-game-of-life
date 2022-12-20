@@ -32,11 +32,11 @@ void clearScreen(void) {
 
 
 void printGrid(bool* gridOne){
-    for(int a = 1; a < gridHeight; a++)
+    for(int a = 0; a <= gridHeight+1; a++)
     {
-        for(int b = 1; b < gridWidth; b++)
+        for(int b = 0; b <= gridWidth+1; b++)
         {
-            if (gridOne[a*gridWidth+b] == true)
+            if (gridOne[a*arrayWidth+b] == true)
             {
                 cout << "█";
             }
@@ -44,7 +44,7 @@ void printGrid(bool* gridOne){
             {
                 cout << ".";
             }
-            if (b == gridWidth-1)
+            if (b == gridWidth+1)
             {
                 cout << endl;
             }
@@ -53,10 +53,9 @@ void printGrid(bool* gridOne){
 }
 
 void initGrid(char mode, bool* gridOne) {
-
+    srand( 811514 );
     // refill the grid
-    std::fill(gridOne, gridOne+(gridHeight*gridWidth), false);
-
+    std::fill(gridOne, gridOne+(arrayWidth*arrayHeight), false);
     int x, y;
     if (mode == 'r') 
     {
@@ -78,19 +77,18 @@ void initGrid(char mode, bool* gridOne) {
           x = stoi(xx);
           y = stoi(yy);
 
-          gridOne[x*gridWidth + y] = true;
+          gridOne[x*arrayWidth + y] = true;
         }
       }
     } 
     else if (mode == 's')
     {
-      srand( 811514 );
-      for(int a =0; a < gridHeight; a++)
+      for(int a =1; a <= gridHeight; a++)
       {
-          for(int b = 0; b < gridWidth; b++)
+          for(int b = 1; b <= gridWidth; b++)
           { 
             double sample = (double) rand() / RAND_MAX;
-            if (sample < PROB) gridOne[a*gridWidth + b] = true;
+            if (sample < PROB) gridOne[a*arrayWidth + b] = true;
           }
       }
     }

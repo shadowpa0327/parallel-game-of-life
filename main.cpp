@@ -20,12 +20,14 @@ using namespace std;
 
 int main(){
 
+    
+
     // system( "color A" );//LGT green
     cout << COLOR_GREEN;
     clearScreen();
-    bool* gridOne = malloc_host<bool>((gridHeight+1)*(gridWidth+1), false);
-    bool* gridTwo = malloc_host<bool>((gridHeight+1)*(gridWidth+1), false);
-    bool* gridAns = malloc_host<bool>((gridHeight+1)*(gridWidth+1), false);
+    bool* gridOne = malloc_host<bool>(arrayHeight*arrayWidth, false);
+    bool* gridTwo = malloc_host<bool>(arrayHeight*arrayWidth, false);
+    bool* gridAns = malloc_host<bool>(arrayHeight*arrayWidth, false);
 
     char mode;
 
@@ -82,14 +84,9 @@ int main(){
 
       #endif
     } 
-    else 
-    {
-      cout << COLOR_RESET;
-      clearScreen();
-      return 0;
-    }
-    printf("pointer address in gridOne:%p\n", gridOne);
-    printf("pointer address in gridTwo:%p\n", gridTwo);
     free(gridOne);
     free(gridTwo);
+    cout << COLOR_RESET;
+    //clearScreen();
+    return 0;
 }
