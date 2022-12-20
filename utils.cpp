@@ -56,7 +56,6 @@ void initGrid(char mode, bool* gridOne) {
 
     // refill the grid
     std::fill(gridOne, gridOne+(arrayWidth*arrayHeight), false);
-    srand(811514);
     int x, y;
     if (mode == 'r') 
     {
@@ -85,6 +84,7 @@ void initGrid(char mode, bool* gridOne) {
     else if (mode == 's')
     {
       for(int a =1; a <= gridHeight; a++)
+      srand( 811514 );
       {
           for(int b = 1; b <= gridWidth; b++)
           { 
@@ -93,4 +93,11 @@ void initGrid(char mode, bool* gridOne) {
           }
       }
     }
+}
+
+bool correct(bool* gridOne, bool* gridAns) {
+  for (int i=0; i<(gridHeight+1)*(gridWidth+1); i++) {
+    if (gridOne[i] != gridAns[i]) return false;  
+  }
+  return true;
 }

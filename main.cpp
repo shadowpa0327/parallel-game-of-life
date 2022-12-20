@@ -27,6 +27,7 @@ int main(){
     clearScreen();
     bool* gridOne = malloc_host<bool>(arrayHeight*arrayWidth, false);
     bool* gridTwo = malloc_host<bool>(arrayHeight*arrayWidth, false);
+    bool* gridAns = malloc_host<bool>(arrayHeight*arrayWidth, false);
 
     char mode;
 
@@ -41,25 +42,46 @@ int main(){
     cin >> start;
     if( start == "y" || start == "Y" ) 
     {
-      #if defined(BUILD_SERIAL)
-        double serialTime = gameOfLifeSerial(gridOne, gridTwo, mode);
-        printf("[Game Of Life Serial]:\t\t[%.3f] ms\n", serialTime);
-        if (SHOW) return 0;
-      #endif
+      double serialTime = gameOfLifeSerial(gridOne, gridTwo, mode);
+      printf("[Game Of Life Serial]:\t\t[%.3f] ms\n", serialTime);
+      
+      // copy answer to gridAns
+      for (int i=0; i<(gridHeight+1)*(gridWidth+1); i++)
+      {
+          gridAns[i] = gridOne[i];
+      }
+
+      if (SHOW) return 0;
+      
       #if defined(BUILD_PTHREAD)
         double pthreadTime = gameOfLifePthread(gridOne, gridTwo, mode);
-        printf("[Game Of Life Pthread]:\t\t[%.3f] ms", pthreadTime);
-        printf("\t\t%.3f times faster than serial version\n", serialTime/pthreadTime);
+        if (correct(gridOne, gridAns)) {
+          printf("[Game Of Life Pthread]:\t\t[%.3f] ms", pthreadTime);
+          printf("\t\t%.3f times faster than serial version\n", serialTime/pthreadTime);
+        } else {
+          printf("[Game Of Life Pthread]:\t\tWrong Answer\n");
+        }
+
       #endif
       #if defined(BUILD_OPENMP)
         double OpenMPTime = gameOfLifeOpenMP(gridOne, gridTwo, mode);
-        printf("[Game Of Life OpenMP]:\t\t[%.3f] ms", OpenMPTime);
-        printf("\t\t%.3f times faster than serial version\n", serialTime/OpenMPTime);
+        if (correct(gridOne, gridAns)) {
+          printf("[Game Of Life OpenMP]:\t\t[%.3f] ms", OpenMPTime);
+          printf("\t\t%.3f times faster than serial version\n", serialTime/OpenMPTime);
+        } else {
+          printf("[Game Of Life OpenMP]:\t\tWrong Answer\n");
+        }
+
       #endif
       #if defined(BUILD_CUDA)
         double CUDATime = gameOfLifeCUDA(gridOne, gridTwo, mode);
-        printf("[Game Of Life CUDA]:\t\t[%.3f] ms", CUDATime); 
-        printf("\t\t%.3f times faster than serial version\n", serialTime/CUDATime);
+        if (correct(gridOne, gridAns)) {
+          printf("[Game Of Life CUDA]:\t\t[%.3f] ms", CUDATime); 
+          printf("\t\t%.3f times faster than serial version\n", serialTime/CUDATime);
+        } else {
+          printf("[Game Of Life CUDA]:\t\tWrong Answer\n");
+        }
+
       #endif
     } 
     else 
@@ -67,7 +89,9 @@ int main(){
       cout << COLOR_RESET;
       clearScreen();
       return 0;
-    } 
+    }
+    printf("pointer address in gridOne:%p\n", gridOne);
+    printf("pointer address in gridTwo:%p\n", gridTwo);
     free(gridOne);
     free(gridTwo);
 }
