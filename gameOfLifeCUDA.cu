@@ -69,18 +69,23 @@ double gameOfLifeCUDA(bool* &gridOne, bool* &gridTwo, char mode){
     cudaMemcpy(d_gridTwo, gridTwo, size, cudaMemcpyHostToDevice);
     //usleep(200000000);
     int iter = 0;  
-    double elapseTime = 0.0;
+    float elapseTime = 0.0;
     size_t threadCount = min(128, size);
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start, 0);
     while (iter++ < maxIteration) 
     {
         std::swap(d_gridOne, d_gridTwo);
         size_t reqBlocksCount = ((gridWidth) * (gridHeight)) / threadCount;
-        double startTime = CycleTimer::currentSeconds();
         updateCUDAKernel<<<reqBlocksCount, threadCount>>>(d_gridOne, d_gridTwo);
-        //break;
-        double endTime = CycleTimer::currentSeconds();
-        elapseTime += (endTime - startTime) * 1000;
     }
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&elapseTime, start, stop);
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
     cudaMemcpy(gridOne, d_gridOne, size, cudaMemcpyDeviceToHost);
     printGrid(gridOne);
     cudaFree(d_gridOne);
