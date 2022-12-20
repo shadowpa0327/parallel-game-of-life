@@ -84,14 +84,9 @@ int main(){
 
       #endif
     } 
-    else 
-    {
-      cout << COLOR_RESET;
-      clearScreen();
-      return 0;
-    }
-    printf("pointer address in gridOne:%p\n", gridOne);
-    printf("pointer address in gridTwo:%p\n", gridTwo);
     free(gridOne);
     free(gridTwo);
+    cout << COLOR_RESET;
+    //clearScreen();
+    return 0;
 }

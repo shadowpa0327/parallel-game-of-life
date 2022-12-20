@@ -53,7 +53,7 @@ void printGrid(bool* gridOne){
 }
 
 void initGrid(char mode, bool* gridOne) {
-
+    srand( 811514 );
     // refill the grid
     std::fill(gridOne, gridOne+(arrayWidth*arrayHeight), false);
     int x, y;
@@ -84,7 +84,6 @@ void initGrid(char mode, bool* gridOne) {
     else if (mode == 's')
     {
       for(int a =1; a <= gridHeight; a++)
-      srand( 811514 );
       {
           for(int b = 1; b <= gridWidth; b++)
           { 
