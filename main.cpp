@@ -20,13 +20,13 @@ using namespace std;
 
 int main(){
 
-    srand( time(NULL) );
+    
 
     // system( "color A" );//LGT green
     cout << COLOR_GREEN;
     clearScreen();
-    bool* gridOne = malloc_host<bool>((gridHeight+1)*(gridWidth+1), false);
-    bool* gridTwo = malloc_host<bool>((gridHeight+1)*(gridWidth+1), false);
+    bool* gridOne = malloc_host<bool>(arrayHeight*arrayWidth, false);
+    bool* gridTwo = malloc_host<bool>(arrayHeight*arrayWidth, false);
 
     char mode;
 

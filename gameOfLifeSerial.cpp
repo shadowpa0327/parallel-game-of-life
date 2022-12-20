@@ -8,14 +8,14 @@
 
 void updateSerial(bool* &gridOne, bool* &gridTwo){
     std::swap(gridOne, gridTwo);
-    for(int a = 1; a < gridHeight; a++)
+    for(int a = 1; a <= gridHeight; a++)
     {
-        for(int b = 1; b < gridWidth; b++)
+        for(int b = 1; b <= gridWidth; b++)
         {
-            int alive =   gridTwo[(a-1)*gridWidth + b-1]   + gridTwo[a*gridWidth + b-1] + gridTwo[(a+1)*gridWidth + b-1]
-                        + gridTwo[(a-1)*gridWidth + b]                                  + gridTwo[(a+1)*gridWidth + b]
-                        + gridTwo[(a-1)*gridWidth + b+1]   + gridTwo[a*gridWidth + b+1] + gridTwo[(a+1)*gridWidth + b+1];;
-            gridOne[a*gridWidth + b] = ((alive == 3) || (alive==2 && gridTwo[a*gridWidth + b]))?1:0; 
+            int alive =   gridTwo[(a-1)*arrayWidth + b-1]   + gridTwo[a*arrayWidth + b-1] + gridTwo[(a+1)*arrayWidth + b-1]
+                        + gridTwo[(a-1)*arrayWidth + b]                                  + gridTwo[(a+1)*arrayWidth + b]
+                        + gridTwo[(a-1)*arrayWidth + b+1]   + gridTwo[a*arrayWidth + b+1] + gridTwo[(a+1)*arrayWidth + b+1];;
+            gridOne[a*arrayWidth + b] = ((alive == 3) || (alive==2 && gridTwo[a*arrayWidth + b]))?1:0; 
         }
     }
 }
@@ -40,6 +40,7 @@ double gameOfLifeSerial(bool* &gridOne, bool* &gridTwo, char mode){
             clearScreen();
         }
     }
+    printGrid(gridOne); 
     return elapseTime;
 }
 
