@@ -6,13 +6,10 @@
 #include <unistd.h>
 #include <cuda.h>
 __global__ void updateCUDAKernel(bool* gridOne, bool* gridTwo){
-//__global__ void updateCUDAKernel(bool* gridOne, bool* gridTwo)
     uint worldSize = gridWidth * gridHeight;
-    //printf("%d\n", worldSize);
     for(uint cellID = blockIdx.x * blockDim.x + threadIdx.x;
         cellID < worldSize;
         cellID += blockDim.x * gridDim.x){
-        //printf("%d\n", cellID);
         uint x = (cellID % (gridWidth)) + 1; // 1 base
         uint y = ((cellID - (cellID % (gridWidth)))/gridWidth)*arrayWidth + arrayWidth;  // 1 base
         uint xLeft = x - 1;
@@ -26,20 +23,6 @@ __global__ void updateCUDAKernel(bool* gridOne, bool* gridTwo){
         
         gridOne[x + y] = alive == 3 || (alive == 2 && gridTwo[x + y]) ? 1 : 0 ;   
     }
-//     uint cellID = blockIdx.x * blockDim.x + threadIdx.x;
-//     uint x = (cellID % (gridWidth)) + 1; // 1 base
-//     uint y = ((cellID - (cellID % (gridWidth)))/gridWidth)*arrayWidth + arrayWidth; // 1 base
-//     uint xLeft = x - 1;
-//     uint xRight = x + 1;
-//     uint yUp = y - arrayWidth;
-//     uint yDown = y + arrayWidth;
-//    // printf("%d\n", yDown);
-//     uint alive = gridTwo[xLeft + yUp]   + gridTwo[x + yUp]   + gridTwo[xRight + yUp] +
-//                  gridTwo[xLeft + y]     +                    + gridTwo[xRight + y] +
-//                  gridTwo[xLeft + yDown] + gridTwo[x + yDown] + gridTwo[xRight + yDown];
-//     //uint alive = 2;
-//     gridOne[x + y] = alive == 3 || (alive == 2 && gridTwo[x + y]) ? 1 : 0 ;   
-//     //gridOne[x+y]=1;
 }
 
 double gameOfLifeCUDA(bool* &gridOne, bool* &gridTwo, char mode){
@@ -61,13 +44,7 @@ double gameOfLifeCUDA(bool* &gridOne, bool* &gridTwo, char mode){
 
     int size = arrayHeight * arrayWidth;
     bool *d_gridOne, *d_gridTwo;
-    cudaError_t status;
-    
-    cudaMalloc(&d_gridOne, size*sizeof(bool));
-    cudaMalloc(&d_gridTwo, size*sizeof(bool));
-    cudaMemcpy(d_gridOne, gridOne, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_gridTwo, gridTwo, size, cudaMemcpyHostToDevice);
-    //usleep(200000000);
+
     int iter = 0;  
     float elapseTime = 0.0;
     size_t threadCount = min(128, size);
@@ -75,19 +52,23 @@ double gameOfLifeCUDA(bool* &gridOne, bool* &gridTwo, char mode){
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventRecord(start, 0);
+    cudaMalloc(&d_gridOne, size*sizeof(bool));
+    cudaMalloc(&d_gridTwo, size*sizeof(bool));
+    cudaMemcpy(d_gridOne, gridOne, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_gridTwo, gridTwo, size, cudaMemcpyHostToDevice);
     while (iter++ < maxIteration) 
     {
         std::swap(d_gridOne, d_gridTwo);
         size_t reqBlocksCount = ((gridWidth) * (gridHeight)) / threadCount;
         updateCUDAKernel<<<reqBlocksCount, threadCount>>>(d_gridOne, d_gridTwo);
     }
+    cudaMemcpy(gridOne, d_gridOne, size, cudaMemcpyDeviceToHost);
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&elapseTime, start, stop);
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
-    cudaMemcpy(gridOne, d_gridOne, size, cudaMemcpyDeviceToHost);
-    printGrid(gridOne);
+   
     cudaFree(d_gridOne);
     cudaFree(d_gridTwo);
     return elapseTime;

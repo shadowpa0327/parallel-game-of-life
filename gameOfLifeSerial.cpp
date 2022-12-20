@@ -39,8 +39,7 @@ double gameOfLifeSerial(bool* &gridOne, bool* &gridTwo, char mode){
             usleep(200000);
             clearScreen();
         }
-    }
-    printGrid(gridOne); 
+    } 
     return elapseTime;
 }
 
