@@ -33,7 +33,7 @@ if(BUILD_PTHREAD)
     target_link_libraries(main
         gameOfLifePthread
     )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_PTHREAD")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_PTHREAD -pthread")
 endif()
 
 if(BUILD_OPENMP)

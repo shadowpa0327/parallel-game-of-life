@@ -1,9 +1,9 @@
-#define gridHeight 1024
-#define gridWidth 1024
+#define gridHeight 100
+#define gridWidth 100
 #define arrayHeight (gridHeight+2)
 #define arrayWidth (gridWidth+2)
-#define maxIteration 10000
-#define PROB 0.3
+#define maxIteration 1000
+#define PROB 1.0
 #define SHOW false
 
 //Move OS defines up here to be used in different places

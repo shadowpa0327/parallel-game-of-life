@@ -6,21 +6,35 @@
 #include <unistd.h>
 void updateOpenMP(bool* &gridOne, bool* &gridTwo){
     // Todo: Implementation OpenMP Version Here
+    
     std::swap(gridOne, gridTwo);
+    // cout << "*******************gridOne**********************\n";
+    // for(int i = 0; i < arrayHeight*arrayWidth; i++)
+    // {
+    //     cout << gridOne[i] << " ";
+    // }
+    // cout << "\n";
+    // cout << "*******************gridTwo**********************\n";
+    // for(int i = 0; i < arrayHeight*arrayWidth; i++)
+    // {
+    //     cout << gridTwo[i] << " ";
+    // }
+    // cout << "\n";
+    // cout << "************************************************\n";
     #pragma omp parallel num_threads(4)
     {
         //int num = omp_get_max_threads();
         //printf("thread num: %d\n",num);
         #pragma omp for 
-        for(int a = 1; a < gridHeight; a++)
+        for(int a = 1; a <= gridHeight; a++)
         {
             //#pragma omp for private(b)
-            for(int b = 1; b < gridWidth; b++)
+            for(int b = 1; b <= gridWidth; b++)
             {
-                int alive =   gridTwo[(a-1)*gridWidth + b-1]   + gridTwo[a*gridWidth + b-1] + gridTwo[(a+1)*gridWidth + b-1]
-                            + gridTwo[(a-1)*gridWidth + b]                                  + gridTwo[(a+1)*gridWidth + b]
-                            + gridTwo[(a-1)*gridWidth + b+1]   + gridTwo[a*gridWidth + b+1] + gridTwo[(a+1)*gridWidth + b+1];;
-                gridOne[a*gridWidth + b] = ((alive == 3) || (alive==2 && gridTwo[a*gridWidth + b]))?1:0; 
+                int alive =   gridTwo[(a-1)*arrayWidth + b-1]   + gridTwo[a*arrayWidth + b-1] + gridTwo[(a+1)*arrayWidth + b-1]
+                            + gridTwo[(a-1)*arrayWidth + b]                                  + gridTwo[(a+1)*arrayWidth + b]
+                            + gridTwo[(a-1)*arrayWidth + b+1]   + gridTwo[a*arrayWidth+ b+1] + gridTwo[(a+1)*arrayWidth + b+1];;
+                gridOne[a*arrayWidth + b] = ((alive == 3) || (alive==2 && gridTwo[a*arrayWidth + b]))?1:0; 
             }
         }
     }
@@ -30,6 +44,7 @@ void updateOpenMP(bool* &gridOne, bool* &gridTwo){
 double gameOfLifeOpenMP(bool* &gridOne, bool* &gridTwo, char mode){
     
     initGrid(mode, gridOne);
+    cout << "Running gameOfLife in OpenMP mode\n";
     int iter = 0;
     double elapseTime = 0.0;
     while (iter++ < maxIteration) 
@@ -45,6 +60,11 @@ double gameOfLifeOpenMP(bool* &gridOne, bool* &gridTwo, char mode){
             usleep(200000);
             clearScreen();
         }
+        // cout << "Iteration:"<<iter<<"\n";
+        // for(int i = 0; i < arrayHeight*arrayWidth; i++)
+        // {
+        //     cout << gridOne[i] << " ";
+        // }
         // if(iter % 10000 == 0)
         // {
         //     printf("Iteration: %d",iter);

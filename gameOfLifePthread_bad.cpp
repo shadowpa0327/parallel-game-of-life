@@ -20,7 +20,7 @@ void* updatePthread(void *arg){
     // Todo: Implementation Pthread Version Here
     pthread_mutex_lock(&mutexsum);
     Arg *data = (Arg *)arg;
-    //std::swap(data->gridOne, data->gridTwo);
+    std::swap(data->gridOne, data->gridTwo);
 
     // cout << "*******************gridOne**********************\n";
     // for(int i = 0; i < arrayHeight*arrayWidth; i++)
@@ -44,7 +44,7 @@ void* updatePthread(void *arg){
     // }
     //cout << "\n";
     //cout << "Hello from Thread "<<data->thread_id << endl;
-    //cout << "id: "<< data->thread_id << " " << data->start << " " << data->end << endl;
+    cout << "id: "<< data->thread_id << " " << data->start << " " << data->end << endl;
     for(int a = start; a <= end; a++)
     {
         for(int b = 1; b <= gridWidth; b++)
@@ -74,16 +74,15 @@ double gameOfLifePthread(bool* &gridOne, bool* &gridTwo, char mode){
 
     //Create threads;
     pthread_mutex_init(&mutexsum, NULL);
+    pthread_t Thd[NUM_THREADS];
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     int part = gridHeight / NUM_THREADS;
+    Arg arg[NUM_THREADS];
     while(iter++ < maxIteration)
-    {   
-        Arg arg[NUM_THREADS];
-        pthread_t Thd[NUM_THREADS]; 
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    {
         //cout << iter << '\n';
-        std::swap(gridOne, gridTwo);
         for(int i = 0; i < NUM_THREADS; i++)
         {
             arg[i].thread_id = i;
@@ -109,6 +108,7 @@ double gameOfLifePthread(bool* &gridOne, bool* &gridTwo, char mode){
             {
                 //cout << arg[i].gridOne[j] << " ";
                 gridOne[j] = arg[i].gridOne[j];
+                gridTwo[j] = arg[i].gridOne[j];
             }
             double endTime = CycleTimer::currentSeconds();
             elapseTime += (endTime - startTime) * 1000;
