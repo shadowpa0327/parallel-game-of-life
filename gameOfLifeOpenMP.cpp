@@ -8,19 +8,6 @@ void updateOpenMP(bool* &gridOne, bool* &gridTwo){
     // Todo: Implementation OpenMP Version Here
     
     std::swap(gridOne, gridTwo);
-    // cout << "*******************gridOne**********************\n";
-    // for(int i = 0; i < arrayHeight*arrayWidth; i++)
-    // {
-    //     cout << gridOne[i] << " ";
-    // }
-    // cout << "\n";
-    // cout << "*******************gridTwo**********************\n";
-    // for(int i = 0; i < arrayHeight*arrayWidth; i++)
-    // {
-    //     cout << gridTwo[i] << " ";
-    // }
-    // cout << "\n";
-    // cout << "************************************************\n";
     #pragma omp parallel num_threads(4)
     {
         //int num = omp_get_max_threads();
@@ -60,15 +47,6 @@ double gameOfLifeOpenMP(bool* &gridOne, bool* &gridTwo, char mode){
             usleep(200000);
             clearScreen();
         }
-        // cout << "Iteration:"<<iter<<"\n";
-        // for(int i = 0; i < arrayHeight*arrayWidth; i++)
-        // {
-        //     cout << gridOne[i] << " ";
-        // }
-        // if(iter % 10000 == 0)
-        // {
-        //     printf("Iteration: %d",iter);
-        // }
     }
     return elapseTime;
 }
