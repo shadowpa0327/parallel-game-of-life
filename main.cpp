@@ -19,15 +19,11 @@ using namespace std;
 
 
 int main(){
-
-    
-
-    // system( "color A" );//LGT green
     cout << COLOR_GREEN;
     clearScreen();
-    bool* gridOne = malloc_host<bool>(arrayHeight*arrayWidth, false);
-    bool* gridTwo = malloc_host<bool>(arrayHeight*arrayWidth, false);
-    bool* gridAns = malloc_host<bool>(arrayHeight*arrayWidth, false);
+    bool* gridOne = malloc_host<bool>(gridHeight*gridWidth, false);
+    bool* gridTwo = malloc_host<bool>(gridHeight*gridWidth, false);
+    bool* gridAns = malloc_host<bool>(gridHeight*gridWidth, false);
 
     char mode;
 
@@ -46,13 +42,12 @@ int main(){
       printf("[Game Of Life Serial]:\t\t[%.3f] ms\n", serialTime);
       
       // copy answer to gridAns
-      for (int i=0; i<(gridHeight+1)*(gridWidth+1); i++)
+      for (int i=0; i<(gridHeight)*(gridWidth); i++)
       {
           gridAns[i] = gridOne[i];
       }
 
       if (SHOW) return 0;
-      
       #if defined(BUILD_PTHREAD)
         double pthreadTime = gameOfLifePthread(gridOne, gridTwo, mode);
         if (correct(gridOne, gridAns)) {
@@ -76,10 +71,20 @@ int main(){
       #if defined(BUILD_CUDA)
         double CUDATime = gameOfLifeCUDA(gridOne, gridTwo, mode);
         if (correct(gridOne, gridAns)) {
-          printf("[Game Of Life CUDA]:\t\t[%.3f] ms", CUDATime); 
+          printf("[Game Of Life CUDA]:\t\t\t\t[%.3f] ms", CUDATime); 
           printf("\t\t%.3f times faster than serial version\n", serialTime/CUDATime);
         } else {
           printf("[Game Of Life CUDA]:\t\tWrong Answer\n");
+        }
+
+      #endif
+      #if defined(BUILD_BIT_CUDA)
+        double BitCUDATime = gameOfLifeCUDABitEnocode(gridOne, gridTwo, mode);
+        if (correct(gridOne, gridAns)) {
+          printf("[Game Of Life CUDA(Bit version)]:\t\t[%.3f] ms", BitCUDATime); 
+          printf("\t\t%.3f times faster than serial version\n", serialTime/BitCUDATime);
+        } else {
+          printf("[Game Of CUDA(Bit version)]:\t\tWrong Answer\n");
         }
 
       #endif

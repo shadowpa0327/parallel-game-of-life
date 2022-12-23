@@ -10,12 +10,12 @@ __global__ void updateCUDAKernel(bool* gridOne, bool* gridTwo){
     for(uint cellID = blockIdx.x * blockDim.x + threadIdx.x;
         cellID < worldSize;
         cellID += blockDim.x * gridDim.x){
-        uint x = (cellID % (gridWidth)) + 1; // 1 base
-        uint y = ((cellID - (cellID % (gridWidth)))/gridWidth)*arrayWidth + arrayWidth;  // 1 base
-        uint xLeft = x - 1;
-        uint xRight = x + 1;
-        uint yUp = y - arrayWidth;
-        uint yDown = y + arrayWidth;
+        uint x = (cellID % (gridWidth)); // 1 base
+        uint y = cellID - x;  // 1 base
+        uint xLeft = (x + gridWidth - 1)%gridWidth;
+        uint xRight = (x + 1) % gridWidth;
+        uint yUp = (y + worldSize - gridWidth) % worldSize;
+        uint yDown = (y + gridWidth) % worldSize;
 
         uint alive =      gridTwo[xLeft + yUp]   + gridTwo[x + yUp]   + gridTwo[xRight + yUp] +
                           gridTwo[xLeft + y]     +                    + gridTwo[xRight + y] +
@@ -42,7 +42,7 @@ double gameOfLifeCUDA(bool* &gridOne, bool* &gridTwo, char mode){
     initGrid(mode, gridOne);
     
 
-    int size = arrayHeight * arrayWidth;
+    int size = gridWidth * gridHeight;
     bool *d_gridOne, *d_gridTwo;
 
     int iter = 0;  

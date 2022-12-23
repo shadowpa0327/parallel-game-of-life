@@ -1,8 +1,7 @@
 #define gridHeight 1024
 #define gridWidth 1024
-#define arrayHeight (gridHeight+2)
-#define arrayWidth (gridWidth+2)
-#define maxIteration 10000
+
+#define maxIteration 50000
 #define PROB 0.3
 #define SHOW false
 
