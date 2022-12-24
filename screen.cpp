@@ -26,8 +26,8 @@ g++ screen.cpp utils.cpp -o screen -lglut -lGLU -lGL
 void display();
 void idle();
 
-int windowsWidth = 1000;
-int windowsHeight = 1000;
+nt windowsWidth = 1800;
+int windowsHeight = (int) (windowsWidth * float(arrayHeight) / float(arrayWidth));
 float offsetWidth = (1.8 / 1.15) / (float) (arrayWidth);
 float offsetHeight = (1.8 / 1.15) / (float) (arrayHeight);
 

@@ -60,7 +60,7 @@ void initGrid(char mode, bool* gridOne) {
     if (mode == 'r') 
     {
       // Todo: Try to do it in an more elastic way rather than hard coding it.
-      string filename = "../testboard.txt";  
+      string filename = "../../testboard.txt";  
       ifstream readfile(filename);
       if ( readfile.is_open() ) 
       {
@@ -79,6 +79,8 @@ void initGrid(char mode, bool* gridOne) {
 
           gridOne[x*arrayWidth + y] = true;
         }
+      } else {
+        cout << "Error when opening file" << endl;
       }
     } 
     else if (mode == 's')
