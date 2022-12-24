@@ -1,10 +1,10 @@
-#define gridHeight 1024
-#define gridWidth 1024
+#define gridHeight 15
+#define gridWidth 15
 #define arrayHeight (gridHeight+2)
 #define arrayWidth (gridWidth+2)
 #define maxIteration 10000
 #define PROB 0.3
-#define SHOW false
+#define SHOW true
 
 //Move OS defines up here to be used in different places
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__BORLANDC__)

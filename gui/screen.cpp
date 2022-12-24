@@ -14,10 +14,13 @@ g++ screen.cpp utils.cpp -o screen -lglut -lGLU -lGL
 #include <fstream>
 #include <string>
 #include <stdlib.h>
-#include "parameter.h"
-#include "utils.h"
-#include "gameOfLife.h"
+#include "../parameter.h"
+#include "../utils.h"
+//#include "gameOfLife.h"
 #include <GL/glut.h>  // GLUT, include glu.h and gl.h
+
+#include <cuda_runtime.h>
+#include <cuda_gl_interop.h>
 
 #if defined(OS_WIN)
   #include <windows.h> // Use for windows
@@ -50,6 +53,16 @@ void updateSerial(bool* &gridOne, bool* &gridTwo){
 }
 
 int main(int argc, char** argv) {
+
+
+	uchar4* h_textureBufferData = nullptr;
+	/// Device-side texture pointer.
+	uchar4* d_textureBufferData = nullptr;
+
+	GLuint gl_pixelBufferObject = 0;
+	GLuint gl_texturePtr = 0;
+	cudaGraphicsResource* cudaPboResource = nullptr;
+
 
 	char mode;
     cout << "Select Initialization mode, read from file or random sample (r/s): ";
