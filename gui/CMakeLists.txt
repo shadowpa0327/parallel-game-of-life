@@ -35,6 +35,10 @@ target_link_libraries(screen
 #------------------
 cuda_add_library(gameOfLifeCUDA
     display.cu
+    gameOfLifeCUDA.cu
+)
+target_link_libraries(screen
+    gameOfLifeCUDA
 )
 #------------------
 

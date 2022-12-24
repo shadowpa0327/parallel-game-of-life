@@ -1,5 +1,5 @@
-#define gridHeight 15
-#define gridWidth 15
+#define gridHeight 7000
+#define gridWidth 10400
 #define arrayHeight (gridHeight+2)
 #define arrayWidth (gridWidth+2)
 #define maxIteration 10000

@@ -19,6 +19,7 @@ g++ screen.cpp utils.cpp -o screen -lglut -lGLU -lGL
 #include <chrono>
 #include <thread>
 #include "display.h"
+#include "gameOfLifeCUDA.h"
 //#include "gameOfLife.h"
 #include <GL/glew.h>
 #include <GL/freeglut.h>  // GLUT, include glu.h and gl.h
@@ -26,6 +27,7 @@ g++ screen.cpp utils.cpp -o screen -lglut -lGLU -lGL
 
 
 #include <cuda_runtime.h>
+#include <cuda.h>
 #include <cuda_gl_interop.h>
 #include <glm/glm.hpp>
 
@@ -65,19 +67,21 @@ bool* gridOne = malloc_host<bool>(gridHeight*gridWidth, false);
 bool* gridTwo = malloc_host<bool>(gridHeight*gridWidth, false);
 bool* gridAns = malloc_host<bool>(gridHeight*gridWidth, false);
 
+bool* d_gridOne;
+bool* d_gridTwo;
 
 int cudaDeviceId = -1;
 
 bool menuVisible = false;
-int screenWidth = 1024;
-int screenHeight = 1024;
+int screenWidth = 1920;
+int screenHeight = 1080;
 bool updateTextureNextFrame = true;
 bool resizeTextureNextFrame = true;
 
 Vector2i mousePosition;
 int mouseButtons = 0;
 
-bool runGpuLife = false;
+bool runGpuLife = true;
 bool lifeRunning = false;
 bool bitLife = false;
 bool useLookupTable = true;
@@ -108,14 +112,14 @@ float lastProcessTime = 0;
 size_t lifeIteratinos = 1;
 uint bitLifeBytesPerTrhead = 1u;
 
-size_t worldWidth = 256;
-size_t worldHeight = 256;
+size_t worldWidth = gridWidth;
+size_t worldHeight = gridHeight;
 
-size_t newWorldWidth = 256;
-size_t newWorldHeight = 256;
+size_t newWorldWidth = gridWidth;
+size_t newWorldHeight = gridHeight;
 
 
-ubyte* d_cpuDisplayData = nullptr;
+uint8_t* d_cpuDisplayData = nullptr;
 
 
 /// Host-side texture pointer.
@@ -127,18 +131,66 @@ GLuint gl_pixelBufferObject = 0;
 GLuint gl_texturePtr = 0;
 cudaGraphicsResource* cudaPboResource = nullptr;
 
+size_t display_counter = 0;
+size_t display_freq = 100;
+
+
+
 void updateSerial(bool* &gridOne, bool* &gridTwo){
     std::swap(gridOne, gridTwo);
-    for(int a = 1; a <= gridHeight; a++)
-    {
-        for(int b = 1; b <= gridWidth; b++)
-        {
-            int alive =   gridTwo[(a-1)*arrayWidth + b-1]   + gridTwo[a*arrayWidth + b-1] + gridTwo[(a+1)*arrayWidth + b-1]
-                        + gridTwo[(a-1)*arrayWidth + b]                                  + gridTwo[(a+1)*arrayWidth + b]
-                        + gridTwo[(a-1)*arrayWidth + b+1]   + gridTwo[a*arrayWidth + b+1] + gridTwo[(a+1)*arrayWidth + b+1];;
-            gridOne[a*arrayWidth + b] = ((alive == 3) || (alive==2 && gridTwo[a*arrayWidth + b]))?1:0; 
+    for(int a = 0; a < gridHeight; a++)
+    {  
+        int a_prev = ((a + gridHeight - 1) % gridHeight) * gridWidth;
+        int a_cur = a*gridWidth;
+        int a_next = ((a + 1) % gridHeight) * gridWidth;
+
+        for(int b = 0; b < gridWidth; b++)
+        {  
+            int b_prev = (b + gridWidth-1) % gridWidth;
+            int b_cur =  b;
+            int b_next = (b + 1) % gridWidth;
+
+            int alive =   gridTwo[a_prev + b_prev]   + gridTwo[a_cur + b_prev] + gridTwo[a_next + b_prev]
+                        + gridTwo[a_prev + b_cur]                              + gridTwo[a_next + b_cur]
+                        + gridTwo[a_prev + b_next]   + gridTwo[a_cur + b_next] + gridTwo[a_next + b_next];
+            gridOne[a_cur + b_cur] = ((alive == 3) || (alive==2 && gridTwo[a_cur + b_cur]))?1:0; 
         }
     }
+}
+
+void runCPULife(){
+	updateSerial(gridOne, gridTwo);
+	cudaMemcpy(d_cpuDisplayData, gridOne, gridWidth*gridHeight, cudaMemcpyHostToDevice);
+}
+
+
+
+
+void runGPULife(){
+	runGameOfLifeCUDA(d_gridOne, d_gridTwo);
+}
+
+
+void initGameOfLifeSerial(char mode){
+	initGrid(mode, gridOne);
+	cudaMalloc((void**)&d_cpuDisplayData, gridWidth*gridHeight);
+}
+
+void initGameOfLifeCUDA(char mode){
+	initGrid(mode, gridOne);
+	cudaMalloc(&d_gridOne, gridWidth*gridHeight*sizeof(bool));
+    cudaMalloc(&d_gridTwo, gridWidth*gridHeight*sizeof(bool));
+	cudaMemcpy(d_gridOne, gridOne, gridWidth*gridHeight*sizeof(bool), cudaMemcpyHostToDevice);
+	//cudaMalloc((void**)&d_cpuDisplayData, gridWidth*gridHeight);
+}
+
+void runLife(){
+	if (runGpuLife){
+		runGPULife();
+	}
+	else{
+		runCPULife();
+	}
 }
 
 
@@ -148,8 +200,21 @@ void displayLife() {
 	size_t num_bytes;
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&d_textureBufferData, &num_bytes, cudaPboResource));
 
-	bool ppc = false;
-
+	bool ppc = true;
+	if(!runGpuLife){
+		assert(d_cpuDisplayData != nullptr);
+		runDisplayLifeKernel(d_cpuDisplayData, worldWidth, worldHeight, d_textureBufferData, screenWidth, screenHeight, 
+							translate.x, translate.y, zoom, ppc, cyclicWorld, false
+							);
+	}
+	else{
+		assert(d_cpuDisplayData == nullptr);
+		runDisplayLifeKernel((uint8_t*)d_gridOne, worldWidth, worldHeight, d_textureBufferData, screenWidth, screenHeight, 
+							translate.x, translate.y, zoom, ppc, cyclicWorld, false
+							);
+	}
+	
+	//printf("runDisplayLifeKernel : %s\n", cudaGetErrorString(cudaGetLastError())); 
 
 	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &cudaPboResource, 0));
@@ -228,32 +293,154 @@ bool initOpenGlBuffers(int width, int height) {
 	return true;
 }
 
+void drawString(float x, float y, float z, const std::string& text) {
+	glRasterPos3f(x, y, z);
+	for (size_t i = 0; i < text.size(); i++) {
+		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, text[i]);
+	}
+}
+
+void drawControls(float dx, float dy) {
+
+		float i = 1;
+		float incI = 14;
+		std::stringstream ss;
+
+		ss.str("");
+		ss << "World size: " << ((newWorldWidth * newWorldHeight) / 1000000.0f) << " millions";
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		ss.str("");
+		ss << "Zoom: " << zoom;
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		ss.str("");
+		ss << "[i] [o] Life iterations: " << lifeIteratinos;
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		ss.str("");
+		ss << "[+] [-] World width: " << newWorldWidth;
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		ss.str("");
+		ss << "[*] [/] World height: " << newWorldHeight;
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		ss.str("");
+		ss << "  [r]   Use better random: " << (useBetterRandom ? "yes" : "no");
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		++i;
+
+		ss.str("");
+		ss << "  [g]   Toggle GPU/CPU: " << (runGpuLife ? "GPU" : "CPU");
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		ss.str("");
+		ss << "  [b]   Toggle bit/byte per cell: " << (bitLife ? "bit" : "byte");
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		if (bitLife) {
+			ss.str("");
+			ss << "[n] [m] Bytes per thread: " << bitLifeBytesPerTrhead;
+			drawString(dx, ++i * incI + dy, 0, ss.str());
+
+			ss.str("");
+			ss << "  [k]   Use lookup table: " << (useLookupTable ? "yes" : "no");
+			drawString(dx, ++i * incI + dy, 0, ss.str());
+
+			ss.str("");
+			ss << "  [j]   Use big chunks table: " << (useBigChunks ? "yes" : "no");
+			drawString(dx, ++i * incI + dy, 0, ss.str());
+		}
+
+		if (!runGpuLife && !bitLife) {
+			ss.str("");
+			ss << "  [p]   Toggle parallel/serial: " << (parallelCpuLife ? "parallel" : "serial");
+			drawString(dx, ++i * incI + dy, 0, ss.str());
+
+			if (parallelCpuLife) {
+				ss.str("");
+				ss << "  [l]   Toggle static call/lambda: " << (useCpuParallelLambda ? "lambda" : "static call");
+				drawString(dx, ++i * incI + dy, 0, ss.str());
+			}
+		}
+
+		++i;
+
+		drawString(dx, ++i * incI + dy, 0, "  [ ]   Run ");
+
+		++i;
+		drawString(dx, ++i * incI + dy, 0, "  [y]   Toggle post-process");
+		drawString(dx, ++i * incI + dy, 0, "  [a]   Toggle auto-running");
+		ss.str("");
+		ss << "  [w]   Run CPU in benchmark: " << (cpuBench ? "yes" : "no");
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+		ss.str("");
+		ss << "  [e]   Run individual inters bench: " << (individualBench ? "yes" : "no");
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+		drawString(dx, ++i * incI + dy, 0, "  [q]   Run benchmark");
+		drawString(dx, ++i * incI + dy, 0, "  [h]   Hide/show this menu");
+
+
+		i = screenHeight / incI - 4;
+
+		ss.str("");
+		ss << "Last process time: " << lastProcessTime << " ms";
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+		ss.str("");
+		ss << "Cells per second: " << ((float)(worldWidth * worldHeight) / lastProcessTime) / 1000.0f << " millions";
+		drawString(dx, ++i * incI + dy, 0, ss.str());
+
+	}
 
 void displayCallback() {
 
 	if (lifeRunning) {
-		//runLife();
+		runLife();
 	}
+	if(display_counter % display_freq == 0){
+		displayLife();
+		drawTexture();
 
-	displayLife();
-	drawTexture();
+		if (menuVisible) {
+			glColor3f(0.0f, 0.0f, 0.0f);
+			drawControls(9, -1);
+			drawControls(11, 1);
+			glColor3f(0.9f, 0.8f, 0.0f);
+			drawControls(10, 0);
+		}
 
-	// if (menuVisible) {
-	// 	glColor3f(0.0f, 0.0f, 0.0f);
-	// 	drawControls(9, -1);
-	// 	drawControls(11, 1);
-	// 	glColor3f(0.9f, 0.8f, 0.0f);
-	// 	drawControls(10, 0);
-	// }
-
-	glutSwapBuffers();
-	glutReportErrors();
+		glutSwapBuffers();
+		glutReportErrors();
+	}
+	display_counter++;
+	lifeRunning = true;
 }
 
 
 
+void reshapeCallback(int w, int h) {
+	screenWidth = w;
+	screenHeight = h;
+
+	glViewport(0, 0, screenWidth, screenHeight);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, screenWidth, screenHeight, 0.0, -1.0, 1.0);
+
+	initOpenGlBuffers(screenWidth, screenHeight);
+	resetWorldPostprocessDisplay = true;
+}
+
 void idleCallback() {
 	if (lifeRunning){
+		//printGrid(gridOne);
 		glutPostRedisplay();
 	}
 	else {
@@ -334,8 +521,140 @@ void initCuda() {
 	// http://stackoverflow.com/questions/11654502/is-cudagetdeviceproperties-returning-corrupted-info
 }
 
+
+
+void keyboardCallback(unsigned char key, int /*mouseX*/, int /*mouseY*/) {
+
+		switch (key) {
+			case 27:  // Esc
+				exit(EXIT_SUCCESS);
+			case ' ':  // Space - run the life iteration step.
+				runLife();
+				break;
+			case 'o':
+				lifeIteratinos <<= 1;
+				break;
+			case 'i':
+				if (lifeIteratinos > 1) {
+					lifeIteratinos >>= 1;
+				}
+				break;
+			case 'g':
+				runGpuLife = !runGpuLife;
+				break;
+			case 'b':
+				bitLife = !bitLife;
+				break;
+			case 'n':
+				if (bitLifeBytesPerTrhead < 1024) {
+					bitLifeBytesPerTrhead <<= 1;
+				}
+				break;
+			case 'm':
+				if (bitLifeBytesPerTrhead > 1) {
+					bitLifeBytesPerTrhead >>= 1;
+				}
+				break;
+			case 'k':
+				useLookupTable = !useLookupTable;
+				break;
+			case 'j':
+				useBigChunks = !useBigChunks;
+				break;
+
+			case 'p':
+				parallelCpuLife = !parallelCpuLife;
+				break;
+			case 'l':
+				useCpuParallelLambda = !useCpuParallelLambda;
+				break;
+
+			case 'y':
+				postprocess = !postprocess;
+				break;
+			case 'c':
+				cyclicWorld = !cyclicWorld;
+				resetWorldPostprocessDisplay = true;
+				break;
+			case 'h':
+				menuVisible = !menuVisible;
+				break;
+			case 'a':
+				lifeRunning = !lifeRunning;
+				break;
+		}
+
+		glutPostRedisplay();
+	}
+
+void mouseCallback(int button, int state, int x, int y) {
+
+	if (button == 3 || button == 4) { // stroll a wheel event
+		// Each wheel event reports like a button click, GLUT_DOWN then GLUT_UP
+		if (state == GLUT_UP) {
+			return; // Disregard redundant GLUT_UP events
+		}
+
+		int zoomFactor = (button == 3) ? -1 : 1;
+		zoom += zoomFactor;
+
+		resetWorldPostprocessDisplay = true;
+		glutPostRedisplay();
+		return;
+	}
+
+	if (state == GLUT_DOWN) {
+		mouseButtons |= 1 << button;
+	}
+	else if (state == GLUT_UP) {
+		mouseButtons &= ~(1 << button);
+	}
+
+	mousePosition.x = x;
+	mousePosition.y = y;
+
+	glutPostRedisplay();
+}
+
+void motionCallback(int x, int y) {
+	int dx = x - mousePosition.x;
+	int dy = y - mousePosition.y;
+
+	if (mouseButtons == 1 << GLUT_LEFT_BUTTON) {
+		translate.x += dx;
+		translate.y += dy;
+		resetWorldPostprocessDisplay = true;
+	}
+
+	mousePosition.x = x;
+	mousePosition.y = y;
+
+	glutPostRedisplay();
+}
+
+
+
 int main(int argc, char** argv) {
+	char mode;
+    cout << "Select Initialization mode, read from file or random sample (r/s): ";
+    cin >> mode;
+
+   	//initGameOfLifeSerial(mode);
+	initGameOfLifeCUDA(mode);
 	initGL(&argc, argv);
-	initCuda();
+	//initCuda();
+
+
+	glutDisplayFunc(displayCallback);
+	glutReshapeFunc(reshapeCallback);
+	glutKeyboardFunc(keyboardCallback);
+	glutMouseFunc(mouseCallback);
+	glutMotionFunc(motionCallback);
+	glutIdleFunc(idleCallback);
+
+	runLife();
+
+	glutMainLoop();
+	
 }
 
