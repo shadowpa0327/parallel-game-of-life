@@ -1,11 +1,11 @@
-FROM nvidia/cuda:11.5.0-devel-ubuntu20.04
+FROM nvidia/cudagl:11.4.2-devel
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Taipei
 
 RUN apt-get update && apt-get install -y \
     sudo \
-    python3 git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig cmake\
+    python3 git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig cmake freeglut3 freeglut3-dev\
   && rm -rf /var/lib/apt/lists/*
 
 ARG WORKSPACE_DIR="/ws"
