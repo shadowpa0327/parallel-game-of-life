@@ -31,12 +31,12 @@ void clearScreen(void) {
 }
 
 
-void printGrid(bool* gridOne){
+void printGrid(uint8_t* gridOne){
     for(int a = 0; a < gridHeight; a++)
     {
         for(int b = 0; b < gridWidth; b++)
         {
-            if (gridOne[a*gridWidth+b] == true)
+            if (gridOne[a*gridWidth+b] == 1)
             {
                 cout << "█";
             }
@@ -52,7 +52,7 @@ void printGrid(bool* gridOne){
     }
 }
 
-void initGrid(char mode, bool* gridOne) {
+void initGrid(char mode, uint8_t* gridOne) {
     srand( 811514 );
     // refill the grid
     std::fill(gridOne, gridOne+(gridWidth*gridHeight), false);
@@ -94,7 +94,7 @@ void initGrid(char mode, bool* gridOne) {
     }
 }
 
-bool correct(bool* gridOne, bool* gridAns) {
+bool correct(uint8_t* gridOne, uint8_t* gridAns) {
   for (int i=0; i<(gridHeight)*(gridWidth); i++) {
     if (gridOne[i] != gridAns[i]) return false;  
   }
