@@ -1,7 +1,7 @@
-#ifndef _GAME_OF_LIFE_CUDA
-#define _GAME_OF_LIFE_CUDA
-
+#pragma once
+#include <cuda_runtime_api.h>
 #include <cuda.h>
+
 
 class gameOfLifeCUDA{
     private:
@@ -34,13 +34,13 @@ class gameOfLifeCUDA{
             freeBuffers();
             if(encoded){
                 size_t worldSize = (worldWidth / 8) * worldHeight;
-                cudaMalloc(&d_gridOneEncoded, worldSize);
-                cudaMalloc(&d_gridTwoEncoded, worldSize);
+                cudaMalloc((void**)&d_gridOneEncoded, worldSize);
+                cudaMalloc((void**)&d_gridTwoEncoded, worldSize);
             }
             else{
                 size_t worldSize = worldWidth * worldHeight;
-                cudaMalloc(&d_gridOne, worldSize);
-                cudaMalloc(&d_gridTwo, worldSize);
+                cudaMalloc((void**)&d_gridOne, worldSize);
+                cudaMalloc((void**)&d_gridTwo, worldSize);
             }
         }
         void freeBuffers(){
@@ -55,7 +55,7 @@ class gameOfLifeCUDA{
         }
 
         bool areBuffersAllocated(bool encoded){
-            if(encoded){
+            if(!encoded){
                 return d_gridOne != nullptr && d_gridTwo != nullptr;
             }
             else{
@@ -71,11 +71,8 @@ class gameOfLifeCUDA{
 
         void initWorld(uint8_t* data, bool encoded);
 
-        void iterate(size_t iterations, bool bitLife, int threadsCount, int bitLifeBytesPerThread)
+        void iterate(size_t iterations, bool bitLife, int threadsCount, int bitLifeBytesPerThread);
 };
 
 
 
-
-
-#endif

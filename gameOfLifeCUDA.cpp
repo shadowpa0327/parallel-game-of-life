@@ -1,13 +1,15 @@
 #include "CUDAFunctions.h"
 #include "gameOfLifeCUDA.h"
-
+#include <cuda_runtime.h>
+#include <iostream>
+#include <cassert>
 void gameOfLifeCUDA::iterate(size_t iterations, bool bitLife, int threadsCount, int bitLifeBytesPerThread){
     if(bitLife){
         return runBitEncodeCUDAKernel(d_gridOneEncoded, d_gridTwoEncoded, worldWidth,
                                       worldHeight, iterations, threadsCount, bitLifeBytesPerThread);
     }
     else{
-        return runSimpleKernel(d_gridOne, d_gridTwo, worldWidth, worldHeight, iterations, threadsCount);
+        return runSimpleLifeKernel(d_gridOne, d_gridTwo, worldWidth, worldHeight, iterations, threadsCount);
     }
 }
 
@@ -20,7 +22,7 @@ void gameOfLifeCUDA::initWorld(uint8_t* data, bool encoded){
         uint8_t* d_data;
         cudaHostRegister(data, worldSize*sizeof(uint8_t), cudaHostRegisterMapped);
         cudaHostGetDevicePointer(&d_data, data, 0);
-        runBitEncodedKernel(d_data, worldWidth, worldHeight, d_gridOneEncoded);
+        runBitLifeEncodeKernel(d_data, worldWidth, worldHeight, d_gridOneEncoded);
         cudaHostUnregister(data);
     }
     else{

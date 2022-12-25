@@ -30,7 +30,7 @@ g++ screen.cpp utils.cpp -o screen -lglut -lGLU -lGL
 #include "gameOfLifeCUDA.h"
 #include "CUDAFunctions.h"
 #include "utils.h"
-
+#include "parameter.h"
 
 #if defined(OS_WIN)
   #include <windows.h> // Use for windows
@@ -63,14 +63,6 @@ typedef glm::mediump_vec4 Vector4f;
 //typedef glm::detail::tvec4<unsigned char> Vector4c;
 typedef unsigned char ubyte;
 
-
-bool* gridOne = malloc_host<bool>(gridHeight*gridWidth, false);
-bool* gridTwo = malloc_host<bool>(gridHeight*gridWidth, false);
-bool* gridAns = malloc_host<bool>(gridHeight*gridWidth, false);
-
-bool* d_gridOne;
-bool* d_gridTwo;
-
 int cudaDeviceId = -1;
 
 bool menuVisible = false;
@@ -89,7 +81,7 @@ bool useLookupTable = true;
 bool useBigChunks = false;
 bool parallelCpuLife = false;
 bool useCpuParallelLambda = false;
-ushort threadsCount = 256;
+ushort threadsCount = 128;
 
 bool resizeWorld = false;
 bool resetWorldPostprocessDisplay = true;
@@ -133,11 +125,11 @@ GLuint gl_texturePtr = 0;
 cudaGraphicsResource* cudaPboResource = nullptr;
 
 size_t display_counter = 0;
-size_t display_freq = 100;
+size_t display_freq = 1;
 
 // GameOfLife Object of CPU and GPU
 gameOfLifeCPU cpuLife;
-gameOfLifeCUDAx cudaLife;
+gameOfLifeCUDA cudaLife;
 
 // Global buffer for shared data
 uint8_t* globalGrid = nullptr;
@@ -145,7 +137,7 @@ char initialization_mode; // mode for initialization
 
 void initGlobalGrid(){  
   globalGrid = new uint8_t[worldWidth * worldHeight];
-  initGrid(globalGrid, initialization_mode);
+  initGrid(initialization_mode, globalGrid);
 }
 
 void freeGlobalBuffers(){
@@ -172,7 +164,7 @@ void resizeLifeWorld(size_t newWorldWidth, size_t newWorldHeight){
 
 void initWorld(bool isCUDA, bool bitlife){
   if(isCUDA){
-    gpuLife.initWorld(globalGrid, bitlife);
+    cudaLife.initWorld(globalGrid, bitlife);
   }
   else{
     cpuLife.initWorld(globalGrid);
@@ -183,27 +175,32 @@ void initWorld(bool isCUDA, bool bitlife){
 float runCpuLife(size_t iterations){
   size_t worldSize = worldHeight * worldWidth;
   if(!cpuLife.areBuffersAllocated()){
+    cout << "Initialize the buffer for CPU life\n";
     freeLocalBuffers();
-
+    cpuLife.allocBuffers();
+    initWorld(false, false);
     assert(d_cpuDisplayData == nullptr);
-    cudaMalloc((void**)&d_cpuDisplayData, encWorldSize)
+    cudaMalloc((void**)&d_cpuDisplayData, worldSize);
   }
+  //printGrid(cpuLife.getGridData());
   auto t1 = std::chrono::high_resolution_clock::now();
-  cpuLife.iterate(iteratinos, parallel, useLambdaInParallel, bitLife, 
-                  blocksPerThread, useLookup, useBigChunks);
+  cpuLife.iterate(iterations, worldHeight, worldWidth);
   auto t2 = std::chrono::high_resolution_clock::now();
   cudaMemcpy(d_cpuDisplayData, cpuLife.getGridData(), worldSize, cudaMemcpyHostToDevice);
+  //printf("runCopy : %s\n", cudaGetErrorString(cudaGetLastError())); 
   return std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0f;
 }
 
 float runCUDALife(size_t iteratinos, ushort threadsCount, bool bitLife, uint bitLifeBytesPerTrhead) {
-  if(!gpuLife.areBuffersAllocated(bitLife)){
+  if(!cudaLife.areBuffersAllocated(bitLife)){
+    cout << "Initialize the buffer for GPU life\n";
     freeLocalBuffers();
-    gpuLife.allocBuffers(bitLife);
+    cudaLife.allocBuffers(bitLife);
+    initWorld(true, bitLife);
   }
 
   auto t1 = std::chrono::high_resolution_clock::now();
-  gpuLife.iterate(iteratinos, bitLife, threadsCount, bitLifeBytesPerTrhead);
+  cudaLife.iterate(iteratinos, bitLife, threadsCount, bitLifeBytesPerTrhead);
   auto t2 = std::chrono::high_resolution_clock::now();
   return std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0f;
 }
@@ -224,7 +221,7 @@ void displayLife() {
 	size_t num_bytes;
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&d_textureBufferData, &num_bytes, cudaPboResource));
 
-	bool ppc = true;
+	bool ppc = false;
 	if(!runGpuLife){
 		assert(d_cpuDisplayData != nullptr);
 		runDisplayLifeKernel(d_cpuDisplayData, worldWidth, worldHeight, d_textureBufferData, screenWidth, screenHeight, 
@@ -667,10 +664,11 @@ void motionCallback(int x, int y) {
 int main(int argc, char** argv) {
 	char mode;
     cout << "Select Initialization mode, read from file or random sample (r/s): ";
-    cin >> mode;
+    cin >> initialization_mode;
 
    	//initGameOfLifeSerial(mode);
-	initGameOfLifeCUDA(mode);
+  //initWorld(runGpuLife, bitLife);
+  initGlobalGrid();
 	initGL(&argc, argv);
 	//initCuda();
 
@@ -681,7 +679,7 @@ int main(int argc, char** argv) {
 	glutMouseFunc(mouseCallback);
 	glutMotionFunc(motionCallback);
 	glutIdleFunc(idleCallback);
-
+  resizeLifeWorld(newWorldWidth, newWorldHeight);
 	runLife();
 
 	glutMainLoop();

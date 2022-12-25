@@ -4,17 +4,17 @@
 
 void gameOfLifeCPU::updateSerial(uint8_t* &gridOne, uint8_t* &gridTwo, size_t gridHeight, size_t gridWidth){
     std::swap(gridOne, gridTwo);
-    for(int a = 0; a < gridHeight; a++)
+    for(size_t a = 0; a < gridHeight; a++)
     {  
-        int a_prev = ((a + gridHeight - 1) % gridHeight) * gridWidth;
-        int a_cur = a*gridWidth;
-        int a_next = ((a + 1) % gridHeight) * gridWidth;
+        size_t a_prev = ((a + gridHeight - 1) % gridHeight) * gridWidth;
+        size_t a_cur = a*gridWidth;
+        size_t a_next = ((a + 1) % gridHeight) * gridWidth;
 
-        for(int b = 0; b < gridWidth; b++)
+        for(size_t b = 0; b < gridWidth; b++)
         {  
-            int b_prev = (b + gridWidth-1) % gridWidth;
-            int b_cur =  b;
-            int b_next = (b + 1) % gridWidth;
+            size_t b_prev = (b + gridWidth-1) % gridWidth;
+            size_t b_cur =  b;
+            size_t b_next = (b + 1) % gridWidth;
 
             int alive =   gridTwo[a_prev + b_prev]   + gridTwo[a_cur + b_prev] + gridTwo[a_next + b_prev]
                         + gridTwo[a_prev + b_cur]                              + gridTwo[a_next + b_cur]

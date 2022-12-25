@@ -2,8 +2,9 @@
 #define _GAME_OF_LIFE_CUDA
 
 #include <cuda.h>
+#include <cassert>
 #include "utils.h"
-
+#include <cstring>
 class gameOfLifeCPU{
     private:
         uint8_t* gridOne;
@@ -13,7 +14,7 @@ class gameOfLifeCPU{
         size_t worldHeight;
 
     public:
-        gameOfLifeCUDA(){
+        gameOfLifeCPU(){
             gridOne = nullptr;
             gridTwo = nullptr;
             worldWidth = 0;
@@ -23,15 +24,12 @@ class gameOfLifeCPU{
         uint8_t* getGridData() const{
             return gridOne;
         }
-        uint8_t* getEncodedGridData() const{
-            return gridOneEncoded;
-        }
 
         void allocBuffers(){
             freeBuffers();
             size_t worldSize = worldWidth * worldHeight;
-            gridOne = new uint8[worldSize];
-            gridTwo = new uint8[worldSize];
+            gridOne = new uint8_t[worldSize];
+            gridTwo = new uint8_t[worldSize];
         }
 
         void freeBuffers(){
@@ -54,12 +52,12 @@ class gameOfLifeCPU{
         void initWorld(uint8_t* data){
             assert(areBuffersAllocated());
             int worldSize = worldWidth * worldHeight;
-            memcpy(gridOne, data, worldSize);
+            std::memcpy(gridOne, data, worldSize);
         }
 
 
 
-        void iterate(size_t iterations);
+        void iterate(size_t iterations, size_t gridHeight, size_t gridWidth);
     private:
         void updateSerial(uint8_t* &gridOne, uint8_t* &gridTwo, size_t gridHeight, size_t gridWidth);
 };

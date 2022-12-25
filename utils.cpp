@@ -76,9 +76,12 @@ void initGrid(char mode, uint8_t* gridOne) {
 
           x = stoi(xx);
           y = stoi(yy);
-
-          gridOne[x*gridWidth + y] = true;
+          //cout<<x<< " " << y <<endl;
+          gridOne[x*gridWidth + y] = 1;
         }
+      }
+      else{
+        std::cout << "error\n" <<std::endl;
       }
     } 
     else if (mode == 's')

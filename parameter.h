@@ -1,5 +1,5 @@
-#define gridHeight 1024
-#define gridWidth 1024
+#define gridHeight 7000
+#define gridWidth 10400
 
 #define maxIteration 50000
 #define PROB 0.3

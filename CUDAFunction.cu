@@ -1,27 +1,9 @@
 #include <cuda.h>
 #include "CUDAFunctions.h"
-
-#define checkCudaErrors(val)   checkCudaResult((val), #val, __FILE__, __LINE__)
-
-template<typename T>
-bool checkCudaResult(T result, char const *const func, const char *const file, int const line) {
-	if (result) {
-		if (result == cudaErrorCudartUnloading) {
-			// Do not try to print error when program is shutting down.
-			return false;
-		}
-
-		std::stringstream ss;
-		ss << "CUDA error at " << file << ":" << line << " code=" << static_cast<unsigned int>(result)
-			<< " \"" << func << "\"";
-		std::cerr << ss.str() << std::endl;
-		return false;
-	}
-	return true;
-}
-
-
-__global__ void updateCUDAKernel(bool* gridOne, bool* gridTwo){
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+__global__ void updateCUDAKernel(uint8_t* gridOne, uint8_t* gridTwo, size_t gridWidth, size_t gridHeight){
     uint worldSize = gridWidth * gridHeight;
     for(uint cellID = blockIdx.x * blockDim.x + threadIdx.x;
         cellID < worldSize;
@@ -41,20 +23,17 @@ __global__ void updateCUDAKernel(bool* gridOne, bool* gridTwo){
     }
 }
 
-bool runSimpleLifeKernel(uint8_t*& d_lifeData, uint8_t*& d_lifeDataBuffer, size_t worldWidth, size_t worldHeight,
+void runSimpleLifeKernel(uint8_t*& d_lifeData, uint8_t*& d_lifeDataBuffer, size_t worldWidth, size_t worldHeight,
 			size_t iterationsCount, ushort threadsCount){
-    
-    if((worldWidth * worldHeight) % threadCount != 0){
-        return false;
-    }
+    //std::cout<< worldWidth << " " << worldWidth << std::endl;
+    assert((worldWidth * worldHeight) % threadsCount == 0);
 
     size_t reqBlocksCount = (worldWidth * worldHeight) / threadsCount;
-
+    
     for (size_t i = 0; i < iterationsCount; i++){
         std::swap(d_lifeData, d_lifeDataBuffer);
-        updateCUDAKernel<<<reqBlocksCount, threadCount>>>(d_gridOne, d_gridTwo);
+        updateCUDAKernel<<<reqBlocksCount, threadsCount>>>(d_lifeData, d_lifeDataBuffer, worldWidth, worldHeight);
     }    
-    return true;
 }
 
 __global__ void bitLifeEncodeKernel(const uint8_t* lifeData, size_t encWorldSize, uint8_t* resultEncodedLifeData) {
@@ -73,7 +52,7 @@ __global__ void bitLifeEncodeKernel(const uint8_t* lifeData, size_t encWorldSize
     
 }
 
-bool runBitEncodedKernel(uint8_t*& gridOne, uint8_t*& gridTwo, size_t gridWidth, size_t gridHeight){
+void runBitLifeEncodeKernel(const uint8_t* d_lifeData, int worldWidth, int worldHeight, uint8_t* d_encodedLife){
     assert(worldWidth % 8 == 0);
     size_t worldEncDataWidth = worldWidth / 8;
     size_t encWorldSize = worldEncDataWidth * worldHeight;
@@ -179,20 +158,15 @@ __global__ void bitLifeKernelCounting(const uint8_t* lifeData, uint worldDataWid
 }
 
 
-bool runBitEncodeCUDAKernel(uint8_t* &d_gridOneEncoded, uint8_t* &d_gridTwoEncoded, size_t worldWidth, size_t worldHeight, 
+void runBitEncodeCUDAKernel(uint8_t* &d_gridOneEncoded, uint8_t* &d_gridTwoEncoded, size_t worldWidth, size_t worldHeight, 
     size_t iterationsCount, ushort threadsCount, uint bytesPerThread){
 
-    if (worldWidth % 8 != 0) {
-        return false;
-    }
+    assert(worldWidth % 8 == 0);
+
     size_t worldEncDataWidth = worldWidth / 8;
-    if (worldEncDataWidth % bytesPerThread != 0) {
-        return false;
-    }    
+    assert(worldEncDataWidth % bytesPerThread == 0);
     size_t encWorldSize = worldEncDataWidth * worldHeight;
-    if ((encWorldSize / bytesPerThread) % threadsCount != 0) {
-        return false;
-    }
+    assert((encWorldSize / bytesPerThread) % threadsCount != 0);
 
     size_t reqBlocksCount = (encWorldSize / bytesPerThread) / threadsCount;
     size_t blocksCount = std::min(size_t(32768), reqBlocksCount);
@@ -203,7 +177,6 @@ bool runBitEncodeCUDAKernel(uint8_t* &d_gridOneEncoded, uint8_t* &d_gridTwoEncod
         std::swap(d_gridOneEncoded, d_gridTwoEncoded);
     }
     cudaDeviceSynchronize();
-    return true;
 }   
 
 
@@ -317,5 +290,5 @@ void runDisplayLifeKernel(const uint8_t* d_lifeData, size_t worldWidth, size_t w
     displayLifeKernel<<<blocksCount, threadsCount>>>(d_lifeData, uint(worldWidth), uint(worldHeight), destination,
         destWidth, destHeight, make_int2(displacementX, displacementY), std::pow(2, zoom),
         multisample, zoom > 1 ? false : simulateColors, cyclic, bitLife);
-    checkCudaErrors(cudaDeviceSynchronize());
+    cudaDeviceSynchronize();
 }
