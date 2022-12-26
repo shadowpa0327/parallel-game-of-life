@@ -69,6 +69,8 @@ class gameOfLifeCUDA{
             worldHeight = height;
         }
 
+        void copyDataToCPU(uint8_t* destination, bool encoded);
+
         void initWorld(uint8_t* data, bool encoded);
 
         void iterate(size_t iterations, bool bitLife, int threadsCount, int bitLifeBytesPerThread);
