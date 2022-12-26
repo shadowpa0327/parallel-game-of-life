@@ -33,8 +33,10 @@ void runSimpleLifeKernel(uint8_t*& d_lifeData, uint8_t*& d_lifeDataBuffer, size_
     for (size_t i = 0; i < iterationsCount; i++){
         std::swap(d_lifeData, d_lifeDataBuffer);
         updateCUDAKernel<<<reqBlocksCount, threadsCount>>>(d_lifeData, d_lifeDataBuffer, worldWidth, worldHeight);
-    }    
+    }
+    cudaDeviceSynchronize();
 }
+
 
 __global__ void bitLifeEncodeKernel(const uint8_t* lifeData, size_t encWorldSize, uint8_t* resultEncodedLifeData) {
     for (size_t outputBucketId = blockIdx.x * blockDim.x + threadIdx.x;
