@@ -1,6 +1,6 @@
 #include "gameOfLifeCPU.h"
 #include <omp.h>
-#define NUM_THREADS 2
+#define NUM_THREADS 4
 
 struct Arg
 {

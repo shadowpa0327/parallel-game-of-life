@@ -30,3 +30,16 @@ void gameOfLifeCUDA::initWorld(uint8_t* data, bool encoded){
         cudaMemcpy(d_gridOne, data, worldSize, cudaMemcpyHostToDevice);
     }
 }
+
+
+void gameOfLifeCUDA::copyDataToCPU(uint8_t* destination, bool encoded){
+    if(encoded){
+        uint8_t* tmp_buf;
+        cudaMalloc((void**)&tmp_buf, worldHeight * worldWidth);
+        runBitLifeDecodeKernel(d_gridOneEncoded, worldWidth, worldHeight, tmp_buf);
+        cudaMemcpy(destination, tmp_buf, worldWidth * worldHeight ,cudaMemcpyDeviceToHost);
+    }
+    else{
+        cudaMemcpy(destination, d_gridOne, worldWidth * worldHeight ,cudaMemcpyDeviceToHost);
+    }
+}
