@@ -57,9 +57,10 @@ class gameOfLifeCPU{
 
 
 
-        void iterate(size_t iterations, size_t gridHeight, size_t gridWidth);
+        void iterate(size_t iterations, size_t gridHeight, size_t gridWidth, int updateMode);
     private:
         void updateSerial(uint8_t* &gridOne, uint8_t* &gridTwo, size_t gridHeight, size_t gridWidth);
+        void updateOpenMP(uint8_t* &gridOne, uint8_t* &gridTwo, size_t gridHeight, size_t gridWidth);
 };
 
 

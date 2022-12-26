@@ -102,7 +102,7 @@ bool individualBench = false;
 float lastProcessTime = 0;
 
 // game of life settings
-size_t lifeIteratinos = 1;
+size_t lifeIterations = 1;
 uint bitLifeBytesPerTrhead = 1u;
 
 size_t worldWidth = gridWidth;
@@ -182,14 +182,14 @@ float runCpuLife(size_t iterations){
   }
   //printGrid(cpuLife.getGridData());
   auto t1 = std::chrono::high_resolution_clock::now();
-  cpuLife.iterate(iterations, worldHeight, worldWidth);
+  cpuLife.iterate(iterations, worldHeight, worldWidth, 1);
   auto t2 = std::chrono::high_resolution_clock::now();
   cudaMemcpy(d_cpuDisplayData, cpuLife.getGridData(), worldSize, cudaMemcpyHostToDevice);
   //printf("runCopy : %s\n", cudaGetErrorString(cudaGetLastError())); 
   return std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0f;
 }
 
-float runCUDALife(size_t iteratinos, ushort threadsCount, bool bitLife, uint bitLifeBytesPerTrhead) {
+float runCUDALife(size_t iterations, ushort threadsCount, bool bitLife, uint bitLifeBytesPerTrhead) {
   if(!cudaLife.areBuffersAllocated(bitLife)){
     cout << "Initialize the buffer for GPU life\n";
     freeLocalBuffers();
@@ -198,7 +198,7 @@ float runCUDALife(size_t iteratinos, ushort threadsCount, bool bitLife, uint bit
   }
 
   auto t1 = std::chrono::high_resolution_clock::now();
-  cudaLife.iterate(iteratinos, bitLife, threadsCount, bitLifeBytesPerTrhead);
+  cudaLife.iterate(iterations, bitLife, threadsCount, bitLifeBytesPerTrhead);
   auto t2 = std::chrono::high_resolution_clock::now();
   return std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0f;
 }
@@ -206,10 +206,10 @@ float runCUDALife(size_t iteratinos, ushort threadsCount, bool bitLife, uint bit
 void runLife(){
   float time;
   if (runGpuLife){
-    time = runCUDALife(lifeIteratinos, threadsCount, bitLife, bitLifeBytesPerTrhead);
+    time = runCUDALife(lifeIterations, threadsCount, bitLife, bitLifeBytesPerTrhead);
   }
   else{
-    time = runCpuLife(lifeIteratinos);
+    time = runCpuLife(lifeIterations);
   }
   lastProcessTime = time;
 }
@@ -340,7 +340,7 @@ void drawControls(float dx, float dy) {
 		drawString(dx, ++i * incI + dy, 0, ss.str());
 
 		ss.str("");
-		ss << "[i] [o] Life iterations: " << lifeIteratinos;
+		ss << "[i] [o] Life iterations: " << lifeIterations;
 		drawString(dx, ++i * incI + dy, 0, ss.str());
 
 		ss.str("");
@@ -555,11 +555,11 @@ void keyboardCallback(unsigned char key, int /*mouseX*/, int /*mouseY*/) {
 				runLife();
 				break;
 			case 'o':
-				lifeIteratinos <<= 1;
+				lifeIterations <<= 1;
 				break;
 			case 'i':
-				if (lifeIteratinos > 1) {
-					lifeIteratinos >>= 1;
+				if (lifeIterations > 1) {
+					lifeIterations >>= 1;
 				}
 				break;
 			case 'g':
