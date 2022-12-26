@@ -76,7 +76,7 @@ int mouseButtons = 0;
 
 bool runGpuLife = true;
 bool lifeRunning = false;
-bool bitLife = false;
+bool bitLife = true;
 bool useLookupTable = true;
 bool useBigChunks = false;
 bool parallelCpuLife = false;
@@ -124,8 +124,6 @@ GLuint gl_pixelBufferObject = 0;
 GLuint gl_texturePtr = 0;
 cudaGraphicsResource* cudaPboResource = nullptr;
 
-size_t display_counter = 0;
-size_t display_freq = 1;
 
 // GameOfLife Object of CPU and GPU
 gameOfLifeCPU cpuLife;
@@ -427,22 +425,20 @@ void displayCallback() {
 	if (lifeRunning) {
 		runLife();
 	}
-	if(display_counter % display_freq == 0){
-		displayLife();
-		drawTexture();
+	displayLife();
+	drawTexture();
 
-		if (menuVisible) {
-			glColor3f(0.0f, 0.0f, 0.0f);
-			drawControls(9, -1);
-			drawControls(11, 1);
-			glColor3f(0.9f, 0.8f, 0.0f);
-			drawControls(10, 0);
-		}
-
-		glutSwapBuffers();
-		glutReportErrors();
+	if (menuVisible) {
+		glColor3f(0.0f, 0.0f, 0.0f);
+		drawControls(9, -1);
+		drawControls(11, 1);
+		glColor3f(0.9f, 0.8f, 0.0f);
+		drawControls(10, 0);
 	}
-	display_counter++;
+
+	glutSwapBuffers();
+	glutReportErrors();
+
 	lifeRunning = true;
 }
 
@@ -660,18 +656,9 @@ void motionCallback(int x, int y) {
 }
 
 
-
-int main(int argc, char** argv) {
-	char mode;
-    cout << "Select Initialization mode, read from file or random sample (r/s): ";
-    cin >> initialization_mode;
-
-   	//initGameOfLifeSerial(mode);
-  //initWorld(runGpuLife, bitLife);
+void runGui(int argc, char** argv){
   initGlobalGrid();
 	initGL(&argc, argv);
-	//initCuda();
-
 
 	glutDisplayFunc(displayCallback);
 	glutReshapeFunc(reshapeCallback);
@@ -679,9 +666,17 @@ int main(int argc, char** argv) {
 	glutMouseFunc(mouseCallback);
 	glutMotionFunc(motionCallback);
 	glutIdleFunc(idleCallback);
-  resizeLifeWorld(newWorldWidth, newWorldHeight);
+  	resizeLifeWorld(newWorldWidth, newWorldHeight);
 	runLife();
 
 	glutMainLoop();
-	
+}
+
+
+
+int main(int argc, char** argv) {
+	//char mode;
+  cout << "Select Initialization mode, read from file or random sample (r/s): ";
+  cin >> initialization_mode;
+  runGui(argc, argv);	
 }

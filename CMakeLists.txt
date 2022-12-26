@@ -24,10 +24,18 @@ add_library(utils
     utils.cpp
 )  
 
+cuda_add_executable(benchmark
+    benchmark.cpp
+)
 
 cuda_add_executable(main
     main.cpp
 )
+
+target_link_libraries(benchmark
+    utils
+)
+
 
 target_link_libraries(main
     utils
@@ -39,6 +47,9 @@ cuda_add_library(gameOfLifeCUDA
     CUDAFunction.cu
     gameOfLifeCUDA.cpp
 )
+target_link_libraries(benchmark
+    gameOfLifeCUDA
+)
 target_link_libraries(main
     gameOfLifeCUDA
 )
@@ -48,12 +59,23 @@ target_link_libraries(main
 add_library(gameOfLifeCPU
     gameOfLifeCPU.cpp
 )
+target_link_libraries(benchmark
+    gameOfLifeCPU
+)
 target_link_libraries(main
     gameOfLifeCPU
 )
 # ----------------------
 
 
+target_link_libraries(benchmark
+    ${CUDA_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${GLUT_LIBRARY}
+    ${glm_LIBRARY}
+    ${GLUE_LIBRARY}
+    ${GLEW_LIBRARIES}
+)
 
 target_link_libraries(main
     ${CUDA_LIBRARIES}

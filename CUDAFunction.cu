@@ -56,7 +56,7 @@ void runBitLifeEncodeKernel(const uint8_t* d_lifeData, int worldWidth, int world
     assert(worldWidth % 8 == 0);
     size_t worldEncDataWidth = worldWidth / 8;
     size_t encWorldSize = worldEncDataWidth * worldHeight;
-
+    //std::cout<<encWorldSize% << " " << std::endl;
     ushort threadsCount = min(encWorldSize, (size_t)128);
     assert(encWorldSize % threadsCount == 0);
     size_t reqBlocksCount = encWorldSize / threadsCount;
@@ -166,7 +166,7 @@ void runBitEncodeCUDAKernel(uint8_t* &d_gridOneEncoded, uint8_t* &d_gridTwoEncod
     size_t worldEncDataWidth = worldWidth / 8;
     assert(worldEncDataWidth % bytesPerThread == 0);
     size_t encWorldSize = worldEncDataWidth * worldHeight;
-    assert((encWorldSize / bytesPerThread) % threadsCount != 0);
+    assert((encWorldSize / bytesPerThread) % threadsCount == 0);
 
     size_t reqBlocksCount = (encWorldSize / bytesPerThread) / threadsCount;
     size_t blocksCount = std::min(size_t(32768), reqBlocksCount);
@@ -280,7 +280,7 @@ void runDisplayLifeKernel(const uint8_t* d_lifeData, size_t worldWidth, size_t w
         int destWidth, int destHeight, int displacementX, int displacementY, int zoom, bool simulateColors,
         bool cyclic, bool bitLife) {
 
-    ushort threadsCount = 256;
+    ushort threadsCount = 512;
     assert((worldWidth * worldHeight) % threadsCount == 0);
     size_t reqBlocksCount = (destWidth * destHeight) / threadsCount;
     assert(reqBlocksCount < 65536);
