@@ -5,41 +5,27 @@ Also known simply as Life, is a cellular automaton devised by the British mathem
 
 The "game" is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves, or, for advanced "players", by creating patterns with particular properties.
 
-1.Any live cell with fewer than two live neighbours dies, as if caused by under-population.
 
-2.Any live cell with two or three live neighbours lives on to the next generation.
-
-3.Any live cell with more than three live neighbours dies, as if by over-population.
-
-4.Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-
-![alt text](https://upload.wikimedia.org/wikipedia/commons/e/e5/Gospers_glider_gun.gif "Logo Title Text 1")
-
-The universe of the Game of Life is an infinite two-dimensional orthogonal grid of square cells, each of which is in one of two possible states, alive or dead. Every cell interacts with its eight neighbours, which are the cells that are horizontally, vertically, or diagonally adjacent. At each step in time, the following transitions occur:
-
-The initial pattern constitutes the seed of the system. The first generation is created by applying the above rules simultaneously to every cell in the seed—births and deaths occur simultaneously, and the discrete moment at which this happens is sometimes called a tick (in other words, each generation is a pure function of the preceding one). The rules continue to be applied repeatedly to create further generations.
-
+## Where to modified the thread of CPU parallel
+Currently, we set the thread number of CPU as a fixed number. User can modify it at `gameOfLifeCPU.cpp`.
 
 ## How to build
-+ To build the game of life with specific paralization skill, please add the following arguments after the `cmake` command.
-    + -DBUILD_SERIAL=True : To enable serial code
-    + -DBUILD_OPENMP=True : To enable OpenMP
-    + -DBUILD_PTHREAD=True : To enable Pthread
-    + -DBUILD_CUDA=True : To enable CUDA (Currently not enable yet. Since we need a docker enviroment with CUDA. Temporarily, we can ignore this flag.)
-
 ```
 mkdir build
 cd build
 
-cmake .. \
--DBUILD_SERIAL=True \
--DBUILD_OPENMP=True \
--DBUILD_PTHREAD=True 
+cmake .. 
 
 make
 ```
-## How to Run
+## How to Run Gui
 ```
 cd build
 ./main
+```
+
+## How to Run Test
+```
+cd build
+./benchmark
 ```
